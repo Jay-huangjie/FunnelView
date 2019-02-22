@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="FunnelView">
+        <attr name="lineWidth" format="dimension"/>
+        <attr name="lineTextSpace" format="dimension"/>
+        <attr name="lastLineOffset" format="dimension"/>
+    </declare-styleable>
+</resources>
