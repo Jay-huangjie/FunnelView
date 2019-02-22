@@ -7,13 +7,18 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PointF;
+import android.support.annotation.NonNull;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
 
-
-import java.math.BigDecimal;
 import java.util.List;
+
+import static jie.com.funnellib.Util.dip2px;
+import static jie.com.funnellib.Util.disableHardwareAccelerated;
+import static jie.com.funnellib.Util.getPaintFontHeight;
+import static jie.com.funnellib.Util.sp2px;
+import static jie.com.funnellib.Util.sub;
 
 /**
  * Created by hj on 2018/11/23.
@@ -21,20 +26,86 @@ import java.util.List;
  */
 public class FunnelView extends View {
     private static final String TAG = "FunnelChart";
+    /*
+     * 数据源
+     * */
     private List<IFunnelData> mDataSet;
+    /*
+     * 梯形画笔
+     * */
     private Paint mPaint = null;
+    /*
+     * 间隔线画笔
+     * */
     private Paint mPaintFunnelLine = null;
-
+    /*
+     * 描述画笔
+     * */
     private Paint mPaintLabel = null;
+    /*
+     * 线 画笔
+     * */
     private Paint mPaintLabelLine = null;
+
     private float mRight = 0.0f;
     private float mBottom = 0.0f;
     private Context mContext;
     private float mLineWidth; //线的长度
     private float mLineTextSpace;  //字与线的间距
-    private float mLastLineOffset;
+    private float mLastLineOffset; //最底部从中心点向两边的偏移量
+    private float mTotalHeight; //单个梯形的目标高度
+    private int count; //漏斗的个数
+    private float mPlotRight;
+    private float mPlotLeft;
+    private float mPlotBottom;
+    private float mPlotTop;
 
-    private ICustomText mCustomText;
+    /*
+     * 中心点坐标，绘制是从下往上，这个坐标是最底部那跟线的中心点
+     * 最后一根线的长度= mLastLineOffset*2
+     * */
+    private float mCenterX;
+
+    /*
+     * 图表总高度
+     * */
+    private float mPlotHeight;
+    /*
+     * 图表总宽度
+     * */
+    private float mPlotWidth;
+
+    //最顶部的线的宽度
+    private float mTopMaxLineWidth;
+
+    /*
+     * 自定义绘制描述文字接口
+     * */
+    private CustomLabel mCustomLabel;
+
+    /*
+     * 漏斗之间线的颜色
+     * */
+    private int mFunnelLineColor;
+    /*
+     * 漏斗之间线的粗细
+     * */
+    private float mFunnelLineStoke;
+
+    /*
+     * 漏斗与描述之间线的粗细
+     * */
+    private float mLineStoke;
+
+    /*
+     * 描述文字颜色
+     * */
+    private int mLabelColor;
+
+    /*
+     * 描述文字大小
+     * */
+    private float mLabelSize;
 
     public FunnelView(Context context) {
         super(context);
@@ -55,41 +126,40 @@ public class FunnelView extends View {
         this.mContext = context;
         if (attributeSet != null) {
             TypedArray ta = context.obtainStyledAttributes(attributeSet, R.styleable.FunnelView);
-            mLineWidth = ta.getDimension(R.styleable.FunnelView_lineWidth, Util.dip2px(context, 12));
-            mLineTextSpace = ta.getDimension(R.styleable.FunnelView_lineTextSpace, Util.dip2px(context, 7));
-            mLastLineOffset = ta.getDimension(R.styleable.FunnelView_lastLineOffset, Util.dip2px(context, 20));
+            mLineWidth = ta.getDimension(R.styleable.FunnelView_lineWidth, dip2px(context, 12));
+            mLineTextSpace = ta.getDimension(R.styleable.FunnelView_lineTextSpace, dip2px(context, 7));
+            mLastLineOffset = ta.getDimension(R.styleable.FunnelView_lastLineOffset, dip2px(context, 20));
+            mTotalHeight = ta.getDimension(R.styleable.FunnelView_totalHeight, dip2px(context, 30));
+            mFunnelLineStoke = ta.getDimension(R.styleable.FunnelView_funnelLineStoke, 5);
+            mFunnelLineColor = ta.getColor(R.styleable.FunnelView_funnelLineColor, Color.WHITE);
+            mLineStoke = ta.getDimension(R.styleable.FunnelView_lineStoke, 3f);
+            mLabelColor = ta.getColor(R.styleable.FunnelView_labelColor, Color.BLACK);
+            mLabelSize = ta.getDimension(R.styleable.FunnelView_labelSize, sp2px(mContext, 12));
             ta.recycle();
         }
-        Util.disableHardwareAccelerated(this);
+        disableHardwareAccelerated(this);
         chartRender();
     }
 
 
-    public void setChartData(List<IFunnelData> chartData) {
+    public void setChartData(@NonNull List<IFunnelData> chartData) {
         this.mDataSet = chartData;
+        count = mDataSet.size();
+        mTopMaxLineWidth = mLastLineOffset + getHalfWidthOffset() * count;
         invalidate();
-    }
-
-    public void setLeftPadding(float leftPadding) {
-        setCenterX(leftPadding);
     }
 
     private void chartRender() {
         mPaintLabel = new Paint(Paint.ANTI_ALIAS_FLAG);
         mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         mPaintFunnelLine = new Paint(Paint.ANTI_ALIAS_FLAG);
-        mPaintFunnelLine.setStrokeWidth(5);
-        mPaintFunnelLine.setColor(Color.WHITE);
+        mPaintFunnelLine.setStrokeWidth(mFunnelLineStoke);
+        mPaintFunnelLine.setColor(mFunnelLineColor);
         mPaintLabelLine = new Paint(Paint.ANTI_ALIAS_FLAG);
         mPaintLabel.setTextAlign(Paint.Align.LEFT);
-        try {
-            mPaintLabel.setColor(Color.parseColor("#666666"));
-            mPaintLabel.setTextSize(Util.sp2px(mContext, 12));
-            mPaintLabelLine.setStrokeWidth(3f);
-        } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+        mPaintLabel.setColor(mLabelColor);
+        mPaintLabel.setTextSize(mLabelSize);
+        mPaintLabelLine.setStrokeWidth(mLineStoke);
     }
 
     @Override
@@ -114,6 +184,16 @@ public class FunnelView extends View {
         }
     }
 
+    private void renderPlot(Canvas canvas) {
+        if (null == mDataSet) {
+            Log.e(TAG, "FunnelView=>未设置数据源!");
+            return;
+        }
+        float funnelHeight = mPlotHeight / count;
+        float cx = mCenterX;
+        renderPlotDesc(canvas, cx, funnelHeight);
+    }
+
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         setMeasuredDimension(measureWidth(widthMeasureSpec),
@@ -134,26 +214,16 @@ public class FunnelView extends View {
     }
 
     private int measureHeight(int measureSpec) {
-        int result = 100;
+        int result = (int) mTotalHeight * count;
         int specMode = MeasureSpec.getMode(measureSpec);
         int specSize = MeasureSpec.getSize(measureSpec);
 
         if (specMode == MeasureSpec.EXACTLY) { //fill_parent
             result = specSize;
-        } else if (specMode == MeasureSpec.AT_MOST) { //wrap_content
-            result = Math.min(result, specSize);
         }
         return result;
     }
 
-    private float mPlotRight;
-    private float mPlotLeft;
-    private float mPlotBottom;
-    private float mPlotTop;
-    private float mCenterX;
-
-    private float mPlotHeight;
-    private float mPlotWidth;
 
     /**
      * 计算图的显示范围,依屏幕px值来计算.
@@ -165,14 +235,8 @@ public class FunnelView extends View {
         mPlotRight = mRight - getPaddingRight();
         mPlotWidth = Math.abs(mPlotRight - mPlotLeft);
         mPlotHeight = Math.abs(mPlotBottom - mPlotTop);
-
-        mCenterX = Util.dip2px(mContext, 92 + 45);
+        mCenterX = (int) mTopMaxLineWidth + mPlotLeft;
     }
-
-    public void setCenterX(float centerX) {
-        this.mCenterX = centerX;
-    }
-
 
     /**
      * 返回图的数据源
@@ -218,15 +282,15 @@ public class FunnelView extends View {
             }
             //根据数量来调整倾斜角度,如果需要实现别的倾斜效果只需调整下面的算法
             if (count <= 4) {
-                halfWidth += Util.dip2px(mContext,17);
+                halfWidth += dip2px(mContext, 17);
             } else if (count <= 6) {
-                halfWidth += Util.dip2px(mContext,13);
+                halfWidth += dip2px(mContext, 13);
             } else if (count <= 8) {
-                halfWidth += Util.dip2px(mContext,10);
+                halfWidth += dip2px(mContext, 10);
             } else if (count <= 10) {
-                halfWidth += Util.dip2px(mContext,7);
+                halfWidth += dip2px(mContext, 7);
             } else {
-                halfWidth += Util.dip2px(mContext,5);
+                halfWidth += dip2px(mContext, 5);
             }
             bottomY = sub(mPlotBottom, i * funnelHeight);
 
@@ -236,6 +300,7 @@ public class FunnelView extends View {
             pStart.y = bottomY - funnelHeight;
 
             pStop.x = cx + mLastLineOffset + halfWidth;
+            Log.i("HJ", pStop.x + "--cx:" + mLastLineOffset + "--halfWidth:" + halfWidth);
             pStop.y = bottomY - funnelHeight;
             path.lineTo(pStop.x, pStop.y); //画右边的线
             path.lineTo(pStart.x, pStart.y); //画左边的线
@@ -245,10 +310,24 @@ public class FunnelView extends View {
             if (i != count - 1) { //绘制中间的线
                 canvas.drawLine(pStart.x, pStart.y, pStop.x, pStop.y, mPaintFunnelLine);
             }
-            renderLabels(canvas, d, cx, labelY, d.getColor(), (int) (pStop.x - cx));
+            renderLabels(canvas, d, cx, labelY, d.getColor(), (int) (pStop.x - cx), i);
         }
     }
 
+
+    private float getHalfWidthOffset() {
+        if (count <= 4) {
+            return dip2px(mContext, 17);
+        } else if (count <= 6) {
+            return dip2px(mContext, 13);
+        } else if (count <= 8) {
+            return dip2px(mContext, 10);
+        } else if (count <= 10) {
+            return dip2px(mContext, 7);
+        } else {
+            return dip2px(mContext, 5);
+        }
+    }
 
     /*
      * 设置线的宽度
@@ -267,67 +346,25 @@ public class FunnelView extends View {
     /*
      * 自定义描述绘制
      * */
-    public void addCustomDrawText(ICustomText iCustomText) {
-        this.mCustomText = iCustomText;
+    public void addCustomDrawLabel(CustomLabel iCustomLabel) {
+        this.mCustomLabel = iCustomLabel;
     }
 
     //画线和字
-    private void renderLabels(Canvas canvas, IFunnelData data, float cx, float y, int color, int width/*每一个四边形的宽度的一半*/) {
+    private void renderLabels(Canvas canvas, IFunnelData data, float cx, float y, int color, int halfWidth, int i) {
         if (data == null) return;
         mPaintLabelLine.setColor(color);
-        float lineX = cx + width + mLineWidth;
+        float lineX = cx + halfWidth + mLineWidth;
         canvas.drawLine(cx, y, lineX, y, mPaintLabelLine);
         float labelX = lineX + mLineTextSpace;
-        float labelY = y + (DrawHelper.getInstance().getPaintFontHeight(mPaintLabel) / 3);
-        if (mCustomText == null) {
-            setLableUi();
+        float labelY = y + getPaintFontHeight(mPaintLabel) / 3;
+        if (mCustomLabel == null) {
             canvas.drawText(data.getLabel(), labelX, labelY, mPaintLabel);
 //            float labelWidth = DrawHelper.getInstance().getTextWidth(mPaintLabel, data.getLabel());
 //            setNumUi();
 //            canvas.drawText(data.getNumUnit(), labelX + labelWidth, labelY, mPaintLabel);
         } else {
-            mCustomText.drawText(canvas, labelX, labelY);
+            mCustomLabel.drawText(canvas, mPaintLabel, labelX, labelY, i);
         }
-    }
-
-
-    /**
-     * 设置客户字体
-     */
-    private void setLableUi() {
-        mPaintLabel.setColor(Color.parseColor("#666666"));
-        mPaintLabel.setFakeBoldText(false);
-    }
-
-    /**
-     * 设置数量字体
-     */
-    private void setNumUi() {
-        mPaintLabel.setColor(Color.parseColor("#333333"));
-        mPaintLabel.setFakeBoldText(true);
-    }
-
-    private void renderPlot(Canvas canvas) {
-        if (null == mDataSet) {
-            Log.e(TAG, "数据源为空!");
-            return;
-        }
-        int count = mDataSet.size();
-        float funnelHeight = mPlotHeight / count;
-        float cx = mCenterX;
-        renderPlotDesc(canvas, cx, funnelHeight);
-    }
-
-    /**
-     * 减法运算
-     *
-     * @param v1 参数1
-     * @param v2 参数2
-     * @return 运算结果
-     */
-    private float sub(float v1, float v2) {
-        BigDecimal bgNum1 = new BigDecimal(Float.toString(v1));
-        BigDecimal bgNum2 = new BigDecimal(Float.toString(v2));
-        return bgNum1.subtract(bgNum2).floatValue();
     }
 }

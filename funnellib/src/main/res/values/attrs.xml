@@ -4,5 +4,11 @@
         <attr name="lineWidth" format="dimension"/>
         <attr name="lineTextSpace" format="dimension"/>
         <attr name="lastLineOffset" format="dimension"/>
+        <attr name="totalHeight" format="dimension"/>
+        <attr name="funnelLineColor" format="color"/>
+        <attr name="funnelLineStoke" format="dimension"/>
+        <attr name="lineStoke" format="dimension"/>
+        <attr name="labelColor" format="color"/>
+        <attr name="labelSize" format="dimension"/>
     </declare-styleable>
 </resources>
