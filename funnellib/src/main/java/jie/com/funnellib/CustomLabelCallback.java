@@ -7,7 +7,7 @@ import android.graphics.Paint;
  * Created by hj on 2019/2/22.
  * 说明：开放自定义描述绘制画笔
  */
-public interface CustomLabel {
+public interface CustomLabelCallback {
     /**
      * 循环绘制线后面的文字
      * @param canvas 画布

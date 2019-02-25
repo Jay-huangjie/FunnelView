@@ -16,6 +16,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".DefaultActivity" />
+        <activity android:name=".CustomLabelActivity" />
+        <activity android:name=".CustomHalfWidthActivity" />
     </application>
 
 </manifest>

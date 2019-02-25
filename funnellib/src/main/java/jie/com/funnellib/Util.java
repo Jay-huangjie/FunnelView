@@ -11,18 +11,18 @@ import java.math.BigDecimal;
  * Created by hj on 2019/2/22.
  * 说明：
  */
-class Util {
+public class Util {
     /**
      * convert sp to its equivalent px
      * <p>
      * 将sp转换为px
      */
-    static float sp2px(Context context, float spValue) {
+    public static float sp2px(Context context, float spValue) {
         return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, spValue,context.getResources().getDisplayMetrics());
     }
 
     /** dip转换px */
-    static float dip2px(Context context,int dip) {
+    public static float dip2px(Context context,int dip) {
         return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dip,context.getResources().getDisplayMetrics());
     }
 
@@ -30,7 +30,7 @@ class Util {
     /*
      * 禁止硬件加速
      * */
-    static void disableHardwareAccelerated(View view) {
+    public static void disableHardwareAccelerated(View view) {
         if (view == null) {
             return;
         }
@@ -46,10 +46,22 @@ class Util {
      * @param paint 画笔
      * @return 高度
      */
-    static float getPaintFontHeight(Paint paint)
+    public static float getPaintFontHeight(Paint paint)
     {
         Paint.FontMetrics fm = paint.getFontMetrics();
         return (float) Math.ceil(fm.descent - fm.ascent);
+    }
+
+    /**
+     * 得到一段文本的宽度
+     * @param paint 画笔
+     * @param str 文本
+     * @return 文本宽度
+     */
+    public static float getTextWidth(Paint paint, String str)
+    {
+        if(str.length() == 0) return 0.0f;
+        return paint.measureText(str, 0, str.length());
     }
 
     /**
@@ -59,7 +71,7 @@ class Util {
      * @param v2 参数2
      * @return 运算结果
      */
-    static float sub(float v1, float v2) {
+    public static float sub(float v1, float v2) {
         BigDecimal bgNum1 = new BigDecimal(Float.toString(v1));
         BigDecimal bgNum2 = new BigDecimal(Float.toString(v2));
         return bgNum1.subtract(bgNum2).floatValue();

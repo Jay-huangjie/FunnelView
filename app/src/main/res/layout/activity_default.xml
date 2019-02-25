@@ -4,13 +4,11 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
-  <jie.com.funnellib.FunnelView
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:id="@+id/funnel"
-      android:paddingLeft="10dp"
-      android:paddingTop="10dp"
-      android:background="#e4ebe8"
-      />
 
+    <jie.com.funnellib.FunnelView
+        android:id="@+id/funnelView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingLeft="10dp"
+        android:paddingTop="10dp" />
 </LinearLayout>
