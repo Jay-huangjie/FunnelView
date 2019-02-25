@@ -22,7 +22,7 @@
 在你的app build.gradle中添加：
 ````
 	dependencies {
-	        implementation 'com.github.Jay-huangjie:FunnelView:v1.0'
+	        implementation 'com.github.Jay-huangjie:FunnelView:v1.1'
 	}
 ````
 #### Step2
@@ -36,6 +36,7 @@
 |---|---|
 |lineWidth|线的长度|
 |lineStoke|线的粗细|
+|lineColor|线的颜色，如果不设置默认跟随梯形的颜色|
 |lineTextSpace|字与线的间距|
 |lastLineOffset|最下方线的偏移量,最下方线的长度=偏移量* 2|
 |totalHeight|每个梯形的目标高度，当高度设置为具体的精确值时此值会失效|
@@ -43,6 +44,7 @@
 |funnelLineColor|每个梯形之间线的颜色|
 |labelColor|描述文字的颜色|
 |labelSize|描述文字的大小|
+
 
 #### 高级使用(Advanced use)
 ##### 自定义描述文字
@@ -62,4 +64,4 @@
 ````
 
 #### 结束语（End）
-开源不易，如果对你有帮助的话，可以给我颗小星星噢
+开源不易，如果对你有帮助的话，请给我颗小星星噢(*^_^*)
