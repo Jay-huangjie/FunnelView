@@ -53,6 +53,7 @@ public class FunnelView extends View {
     private float mBottom = 0.0f;
     private Context mContext;
     private float mLineWidth; //线的长度
+    private int mLineColor;
     private float mLineTextSpace;  //字与线的间距
     private float mLastLineOffset; //最底部从中心点向两边的偏移量
     private float mTotalHeight; //单个梯形的目标高度
@@ -136,6 +137,7 @@ public class FunnelView extends View {
         if (attributeSet != null) {
             TypedArray ta = context.obtainStyledAttributes(attributeSet, R.styleable.FunnelView);
             mLineWidth = ta.getDimension(R.styleable.FunnelView_lineWidth, dip2px(context, 12));
+            mLineColor = ta.getColor(R.styleable.FunnelView_lineColor, -1);
             mLineTextSpace = ta.getDimension(R.styleable.FunnelView_lineTextSpace, dip2px(context, 7));
             mLastLineOffset = ta.getDimension(R.styleable.FunnelView_lastLineOffset, dip2px(context, 20));
             mTotalHeight = ta.getDimension(R.styleable.FunnelView_totalHeight, dip2px(context, 30));
@@ -265,7 +267,7 @@ public class FunnelView extends View {
         pStart.x = cx - mPlotWidth / 2;
         pStop.x = cx + mPlotWidth / 2;
         pStart.y = pStop.y = mPlotBottom;
-        float labelY = 0.f;
+        float lineY;
         Path path = new Path();
         for (int i = 0; i < count; i++) {
             IFunnelData d = mDataSet.get(i);
@@ -285,38 +287,37 @@ public class FunnelView extends View {
                 halfWidth = halfArrays[i];
             }
             bottomY = sub(mPlotBottom, i * funnelHeight);
-            labelY = bottomY - funnelHeight / 2;
+            lineY = bottomY - funnelHeight / 2;
+
             pStart.x = cx - mLastLineOffset - halfWidth;
             pStart.y = bottomY - funnelHeight;
             pStop.x = cx + mLastLineOffset + halfWidth;
             pStop.y = bottomY - funnelHeight;
-            path.lineTo(pStop.x, pStop.y); //画右边的线
-            path.lineTo(pStart.x, pStart.y); //画左边的线
+
+            //画线
+            mPaintLabelLine.setColor(mLineColor == -1 ? d.getColor() : mLineColor);
+            float lineX = pStop.x + mLineWidth;
+            canvas.drawLine(cx, lineY, lineX, lineY, mPaintLabelLine);
+
+            path.lineTo(pStop.x, pStop.y); //画梯形右边的线
+            path.lineTo(pStart.x, pStart.y); //画梯形左边的线
             mPaint.setColor(d.getColor());
             path.close();
             canvas.drawPath(path, mPaint);
             if (i != count - 1) { //绘制中间的线
                 canvas.drawLine(pStart.x, pStart.y, pStop.x, pStop.y, mPaintFunnelLine);
             }
-            renderLabels(canvas, d, cx, labelY, d.getColor(), (int) (pStop.x - cx), i);
+
+            //绘制描述文字
+            float labelX = lineX + mLineTextSpace;
+            float labelY = lineY + getPaintFontHeight(mPaintLabel) / 3;
+            if (mCustomLabelCallback == null) {
+                canvas.drawText(d.getLabel(), labelX, labelY, mPaintLabel);
+            } else {
+                mCustomLabelCallback.drawText(canvas, mPaintLabel, labelX, labelY, i);
+            }
         }
     }
-
-    //画线和字
-    private void renderLabels(Canvas canvas, IFunnelData data, float cx, float y, int color, int halfWidth, int i) {
-        if (data == null) return;
-        mPaintLabelLine.setColor(color);
-        float lineX = cx + halfWidth + mLineWidth;
-        canvas.drawLine(cx, y, lineX, y, mPaintLabelLine);
-        float labelX = lineX + mLineTextSpace;
-        float labelY = y + getPaintFontHeight(mPaintLabel) / 3;
-        if (mCustomLabelCallback == null) {
-            canvas.drawText(data.getLabel(), labelX, labelY, mPaintLabel);
-        } else {
-            mCustomLabelCallback.drawText(canvas, mPaintLabel, labelX, labelY, i);
-        }
-    }
-
 
     /*
      * 设置线的宽度
@@ -369,11 +370,8 @@ public class FunnelView extends View {
             for (int i = 0; i < count; i++) {
                 halfWidth = callback.getHalfStrategy(halfWidth, count, i);
                 halfArrays[i] = halfWidth;
-            }
-            //找出其中的最大值,此值也就是漏斗的最大宽度(不包括线和描述文字)
-            for (float value : halfArrays) {
-                if (max < value) {
-                    max = value;
+                if (max < halfWidth) {
+                    max = halfWidth;  //找出其中的最大值,此值也就是漏斗的最大宽度(不包括线和描述文字)
                 }
             }
             mTopMaxLineHalf = max + mLastLineOffset;
