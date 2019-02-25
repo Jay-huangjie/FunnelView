@@ -39,7 +39,7 @@
 |lineColor|线的颜色，如果不设置默认跟随梯形的颜色|
 |lineTextSpace|字与线的间距|
 |lastLineOffset|最下方线的偏移量,最下方线的长度=偏移量* 2|
-|totalHeight|每个梯形的目标高度，当高度设置为具体的精确值时此值会失效|
+|totalHeight|每个梯形的目标高度，当高度设置为具体的精确值时此值会失效，每个梯形高度会按照固定高度等分|
 |funnelLineStoke|每个梯形之间线的粗细|
 |funnelLineColor|每个梯形之间线的颜色|
 |labelColor|描述文字的颜色|
