@@ -36,7 +36,6 @@ public class CustomLabelActivity extends BaseFunnelActivity {
                 canvas.drawText(funnelData.num+"个", labelX + labelWidth, labelY, mPaintLabel);
             }
         });
-        funnelView.setHasLabel(false);
         funnelView.setChartData(data);
 
     }
