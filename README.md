@@ -22,7 +22,7 @@
 在你的app build.gradle中添加：
 ````
 	dependencies {
-	        implementation 'com.github.Jay-huangjie:FunnelView:v1.1'
+	        implementation 'com.github.Jay-huangjie:FunnelView:v1.3'
 	}
 ````
 #### Step2
@@ -67,6 +67,9 @@
 2019/7/1
 添加隐藏描述文字功能
 ````
+
+#### 常见问题
+编译不过可尝试将gradle版本调低，本demo为最新版
 
 #### 结束语（End）
 开源不易，如果对你有帮助的话，请给我颗小星星噢(*^_^*)
