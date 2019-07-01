@@ -60,6 +60,7 @@ public class FunnelView extends View {
     private int count; //漏斗的个数
     private float mPlotBottom; //底部坐标
     private boolean EXACTLY; //是否是精确高度
+    private boolean hasLabel; //是否需要描述文字
     /*
      * 中心点坐标，绘制是从下往上，这个坐标是最底部那跟线的中心点
      * 最后一根线的长度= mLastLineOffset*2
@@ -146,6 +147,7 @@ public class FunnelView extends View {
             mLineStoke = ta.getDimension(R.styleable.FunnelView_lineStoke, 3f);
             mLabelColor = ta.getColor(R.styleable.FunnelView_labelColor, Color.BLACK);
             mLabelSize = ta.getDimension(R.styleable.FunnelView_labelSize, sp2px(mContext, 12));
+            hasLabel = ta.getBoolean(R.styleable.FunnelView_hasLabel,true);
             ta.recycle();
         }
         disableHardwareAccelerated(this);
@@ -203,16 +205,17 @@ public class FunnelView extends View {
     }
 
     private int measureWidth(int measureSpec) {
-        int result = 100;
+//        int result = 100;
         int specMode = MeasureSpec.getMode(measureSpec);
         int specSize = MeasureSpec.getSize(measureSpec);
 
-        if (specMode == MeasureSpec.EXACTLY) { //fill_parent
-            result = specSize;
-        } else if (specMode == MeasureSpec.AT_MOST) { //wrap_content
-            result = Math.min(result, specSize);
-        }
-        return result;
+//        if (specMode == MeasureSpec.EXACTLY) { //fill_parent
+//            result = specSize;
+//        }
+//        } else if (specMode == MeasureSpec.AT_MOST) { //wrap_content 暂时不处理,因为不能获取到具体需要的宽度
+//            result = Math.min(result, specSize);
+//        }
+        return specSize;
     }
 
     private int measureHeight(int measureSpec) {
@@ -294,11 +297,12 @@ public class FunnelView extends View {
             pStop.x = cx + mLastLineOffset + halfWidth;
             pStop.y = bottomY - funnelHeight;
 
-            //画线
-            mPaintLabelLine.setColor(mLineColor == -1 ? d.getColor() : mLineColor);
             float lineX = pStop.x + mLineWidth;
-            canvas.drawLine(cx, lineY, lineX, lineY, mPaintLabelLine);
-
+            if (hasLabel) {
+                //画线
+                mPaintLabelLine.setColor(mLineColor == -1 ? d.getColor() : mLineColor);
+                canvas.drawLine(cx, lineY, lineX, lineY, mPaintLabelLine);
+            }
             path.lineTo(pStop.x, pStop.y); //画梯形右边的线
             path.lineTo(pStart.x, pStart.y); //画梯形左边的线
             mPaint.setColor(d.getColor());
@@ -308,13 +312,15 @@ public class FunnelView extends View {
                 canvas.drawLine(pStart.x, pStart.y, pStop.x, pStop.y, mPaintFunnelLine);
             }
 
-            //绘制描述文字
-            float labelX = lineX + mLineTextSpace;
-            float labelY = lineY + getPaintFontHeight(mPaintLabel) / 3;
-            if (mCustomLabelCallback == null) {
-                canvas.drawText(d.getLabel(), labelX, labelY, mPaintLabel);
-            } else {
-                mCustomLabelCallback.drawText(canvas, mPaintLabel, labelX, labelY, i);
+            if (hasLabel) {
+                //绘制描述文字
+                float labelX = lineX + mLineTextSpace;
+                float labelY = lineY + getPaintFontHeight(mPaintLabel) / 3;
+                if (mCustomLabelCallback == null) {
+                    canvas.drawText(d.getLabel(), labelX, labelY, mPaintLabel);
+                } else {
+                    mCustomLabelCallback.drawText(canvas, mPaintLabel, labelX, labelY, i);
+                }
             }
         }
     }
@@ -347,6 +353,10 @@ public class FunnelView extends View {
      */
     public <T extends IFunnelData> void setChartData(@NonNull List<T> chartData) {
         setChartData(chartData, null);
+    }
+
+    public void setHasLabel(boolean hasLabel){
+        this.hasLabel = hasLabel;
     }
 
 

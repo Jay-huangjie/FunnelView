@@ -3,11 +3,7 @@ package jie.com.funnel;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import jie.com.funnellib.CustomLabelCallback;
@@ -40,6 +36,8 @@ public class CustomLabelActivity extends BaseFunnelActivity {
                 canvas.drawText(funnelData.num+"个", labelX + labelWidth, labelY, mPaintLabel);
             }
         });
+        funnelView.setHasLabel(false);
         funnelView.setChartData(data);
+
     }
 }
