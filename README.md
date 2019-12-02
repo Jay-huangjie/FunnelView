@@ -22,7 +22,7 @@
 在你的app build.gradle中添加：
 ````
 	dependencies {
-	        implementation 'com.github.Jay-huangjie:FunnelView:v1.3'
+	        implementation 'com.github.Jay-huangjie:FunnelView:v1.4'
 	}
 ````
 ### Step2
