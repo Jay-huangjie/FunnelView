@@ -1,15 +1,15 @@
 # FunnelView
 一个漂亮的自定义漏斗View,支持自定义描述，颜色，自动适配高度或自定义高度，宽度也能自动适配，甚至能自己定义宽度的伸缩策略来达到适配效果
 
-### 效果图(Design sketch)
+## 效果图(Design sketch)
 |效果|图片|
 |---|---|
 |默认效果|![view1.png](https://upload-images.jianshu.io/upload_images/3468978-921867ae19dd3bcf.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/720)|
 |自定义描述文字|![view2.png](https://upload-images.jianshu.io/upload_images/3468978-0517933d5ead4902.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/720)|
 |自定义宽度伸缩策略|![view3.png](https://upload-images.jianshu.io/upload_images/3468978-50289a6c88903663.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/720)|
 
-### 使用(Usering)
-#### Step1
+## 使用(Usering)
+### Step1
 在你的root build.gradle中添加：
 ````
 	allprojects {
@@ -25,13 +25,13 @@
 	        implementation 'com.github.Jay-huangjie:FunnelView:v1.3'
 	}
 ````
-#### Step2
-如果你只需要默认样式，只需两步即可使用：
+### Step2
+如果你只需要简单展示，只需两步即可使用：
 1. 数据源继承`IFunnelData`接口
 2. 调用`setChartData`方法将数据源设置进去即可
 **注意：绘制的顺序是从下往上，所以如果你希望你的数据源是从上往下排列，需要调用`Collections.reverse(List<?> list);`方法将集合结果反转**
 
-#### 属性表(Attribute table)：
+### xml属性表(Attribute table)：
 |属性|字段|
 |---|---|
 |lineWidth|线的长度|
@@ -47,12 +47,36 @@
 |hasLabel|是否需要描述文字 默认打开|
 
 
-#### 高级使用(Advanced use)
+### api使用(Advanced use)
 ##### 自定义描述文字
-参考`CustomLabelActivity`.实现`CustomLabelCallback`接口，该接口会返回画笔和画布，以及文字的x,y坐标，极易方便扩展
-注意这是在循环中调用此接口绘制，所以会返回一个下标用于获取指定的数据源
+参考`CustomLabelActivity`，有两种实现方式：
+1. 先实现`CustomLabelCallback`接口，该接口会返回一个描述文字辅助类`LabelHelper`,可以使用该类获取画笔画布自行绘制文字或者使用内部的api来绘制
+2. 如果对自定义View熟悉或者需要实现api没有覆盖到的功能，可以从该类中调用get系列的方法获取需要的元素，其中的坐标已经都计算好了，可以直接使用
+3 .如果对自定义View不太熟悉的可以使用`build`方法来构建需要绘制的元素，示例如下：
+````
+funnelView.addCustomLabelCallback(new CustomLabelCallback() {
+            @Override
+            public void drawText(LabelHelper mHelper, int index) {
+                FunnelData mData = data.get(index);
+                mHelper.build(
+                        mHelper.getBuild()
+                        .setFirstHalfText(mData.label+":")
+                        .setFirstHalfTextStyle(mData.color)
+                        .setCenterHalfText(mData.num)
+                        .setCenterHalfTextStyle(Color.parseColor("#333333"),true)
+                        .setFooterHalfText("个")
+                        .setFooterTextStyle(Color.parseColor("#333333"))
+                );
+            }
+        });
+````
+效果见自定义描述文字效果图
 
-如果不需要描述文字可以调用`setHasLabel`方法关闭
+api最多支持3种文字的组合，每个组合支持设置不同的颜色和粗细，最后把它们连接到一起，**注意一定要设置颜色**，不然颜色默认为透明
+
+**注意这是在循环中调用此接口绘制**，所以会返回一个下标用于获取指定的数据源
+
+关闭描述文字:调用`setHasLabel`方法关闭
 
 ##### 自定义宽度策略
 参考`CustomHalfWidthActivity`,通过实现`HalfWidthCallback`接口即可。该接口会返回当前下面一个梯形的新增宽度，总梯形个数以及当前绘制的下标。
@@ -67,6 +91,9 @@
 
 2019/7/1
 添加隐藏描述文字功能
+
+2019/12/2
+添加自定义描述文字Api
 ````
 
 #### 常见问题
