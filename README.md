@@ -51,8 +51,8 @@
 ##### 自定义描述文字
 参考`CustomLabelActivity`，有两种实现方式：
 1. 先实现`CustomLabelCallback`接口，该接口会返回一个描述文字辅助类`LabelHelper`,可以使用该类获取画笔画布自行绘制文字或者使用内部的api来绘制
-2. 如果对自定义View熟悉或者需要实现api没有覆盖到的功能，可以从该类中调用get系列的方法获取需要的元素，其中的坐标已经都计算好了，可以直接使用
-3 .如果对自定义View不太熟悉的可以使用`build`方法来构建需要绘制的元素，示例如下：
+2. 如果对自定义View熟悉或者需要实现api没有覆盖到的功能，可以从该类中调用get系列的方法获取需要的画布元素来接管描述文字的绘制，其中的坐标已经都计算好了，可以直接使用
+3. 如果对自定义View不太熟悉的可以使用`build`方法来构建需要绘制的元素，示例如下：
 ````
 funnelView.addCustomLabelCallback(new CustomLabelCallback() {
             @Override
