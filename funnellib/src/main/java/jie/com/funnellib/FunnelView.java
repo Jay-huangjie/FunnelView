@@ -118,6 +118,11 @@ public class FunnelView extends View {
      * */
     private float[] halfArrays;
 
+    /**
+     * 描述文字辅助类
+     */
+    private LabelHelper mLabelHelper;
+
     public FunnelView(Context context) {
         super(context);
         initView(context, null);
@@ -135,6 +140,7 @@ public class FunnelView extends View {
 
     private void initView(Context context, AttributeSet attributeSet) {
         this.mContext = context;
+        mLabelHelper = new LabelHelper();
         if (attributeSet != null) {
             TypedArray ta = context.obtainStyledAttributes(attributeSet, R.styleable.FunnelView);
             mLineWidth = ta.getDimension(R.styleable.FunnelView_lineWidth, dip2px(context, 12));
@@ -272,6 +278,7 @@ public class FunnelView extends View {
         pStart.y = pStop.y = mPlotBottom;
         float lineY;
         Path path = new Path();
+        mLabelHelper.setDrawBasicParameters(canvas,mPaintLabel);
         for (int i = 0; i < count; i++) {
             IFunnelData d = mDataSet.get(i);
             path.reset();
@@ -319,7 +326,8 @@ public class FunnelView extends View {
                 if (mCustomLabelCallback == null) {
                     canvas.drawText(d.getLabel(), labelX, labelY, mPaintLabel);
                 } else {
-                    mCustomLabelCallback.drawText(canvas, mPaintLabel, labelX, labelY, i);
+                    mLabelHelper.updateXY(labelX,labelY);
+                    mCustomLabelCallback.drawText(mLabelHelper, i);
                 }
             }
         }
